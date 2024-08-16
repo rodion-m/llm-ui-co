@@ -11,9 +11,8 @@ import {
 import { Icons } from "@/icons";
 import { getMaskedKey } from "@/lib/maskKey";
 import { cn } from "@/lib/utils";
-import { nanoid, type Message } from "ai";
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import { Configuration, OpenAIApi } from 'openai-edge';
+import { OpenAIStream, nanoid, type Message } from "ai";
+import OpenAI from "openai";
 import * as React from "react";
 import * as R from "remeda";
 import {
@@ -101,23 +100,27 @@ export const Chat = () => {
     storage?.setItem(CHAT_OPENAI_API_KEY, currentApiKey);
     scrollToBottom();
 
-    const userMessage: Message = { id: nanoid(), role: 'user', content: input };
+    const userMessage: Message = { id: nanoid(), role: "user", content: input };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
-    const configuration = new Configuration({
-      apiKey: currentApiKey,
-    });
-    const openai = new OpenAIApi(configuration);
+    const client = new OpenAI({ baseURL: "http://localhost:5154/v1" });
 
     try {
-      const response = await openai.createChatCompletion({
+      const response = await client.chat.completions.create({
         model: selectedChatGptModel,
         messages: [
-          { role: 'system', content: systemMessage || "You are a helpful assistant" },
-          ...newMessages.map(({ role, content }) => ({ role, content })),
+          {
+            role: "system",
+            content: systemMessage || "You are a helpful assistant",
+          },
+          // @ts-expect-error: TS2769
+          ...newMessages.map(({ role, content }) => ({
+            role: role,
+            content: content,
+          })),
         ],
         stream: true,
       });
@@ -130,7 +133,10 @@ export const Chat = () => {
         const { done, value } = await reader.read();
         if (done) break;
         assistantMessage += value;
-        setMessages([...newMessages, { id: nanoid(), role: 'assistant', content: assistantMessage }]);
+        setMessages([
+          ...newMessages,
+          { id: nanoid(), role: "assistant", content: assistantMessage },
+        ]);
       }
     } catch (error) {
       setError(error as Error);
