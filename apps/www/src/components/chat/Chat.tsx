@@ -12,8 +12,7 @@ import { Icons } from "@/icons";
 import { getMaskedKey } from "@/lib/maskKey";
 import { cn } from "@/lib/utils";
 import { nanoid, type Message } from "ai";
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import { Configuration, OpenAIApi } from 'openai-edge';
+import { useChat } from "ai/react";
 import * as React from "react";
 import * as R from "remeda";
 import {
@@ -71,9 +70,6 @@ export const Chat = () => {
   const [systemMessage, setSystemMessage] = React.useState<string>("");
   const [missingApiKey, setMissingApiKey] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error>();
-  const [messages, setMessages] = React.useState<Message[]>([]);
-  const [input, setInput] = React.useState<string>("");
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const textArea = messageTextAreaRef.current?.textArea;
@@ -82,62 +78,27 @@ export const Chat = () => {
     }
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      currentApiKey.length === 0 &&
-      selectedChatGptModel != CHAT_GPT_MODELS[0]
-    ) {
-      setMissingApiKey(true);
-      return;
-    }
-
-    setError(undefined);
-    setMissingApiKey(false);
-    storage?.setItem(CHAT_OPENAI_API_KEY, currentApiKey);
-    scrollToBottom();
-
-    const userMessage: Message = { id: nanoid(), role: 'user', content: input };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    setInput("");
-    setIsLoading(true);
-
-    const configuration = new Configuration({
-      apiKey: currentApiKey,
-    });
-    const openai = new OpenAIApi(configuration);
-
-    try {
-      const response = await openai.createChatCompletion({
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: "/api/chat",
+      initialMessages: [
+        {
+          id: nanoid(),
+          role: "system",
+          content:
+            systemMessage.length !== 0
+              ? systemMessage
+              : "You are a helpful assistant",
+        },
+      ],
+      body: {
+        apiKey: currentApiKey,
         model: selectedChatGptModel,
-        messages: [
-          { role: 'system', content: systemMessage || "You are a helpful assistant" },
-          ...newMessages.map(({ role, content }) => ({ role, content })),
-        ],
-        stream: true,
-      });
-
-      const stream = OpenAIStream(response);
-      const reader = stream.getReader();
-      let assistantMessage = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        assistantMessage += value;
-        setMessages([...newMessages, { id: nanoid(), role: 'assistant', content: assistantMessage }]);
-      }
-    } catch (error) {
-      setError(error as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      },
+      onError: (error: Error) => {
+        setError(JSON.parse(error.message));
+      },
+    });
 
   const scrollToBottom = () => {
     if (messagesDivRef.current) {
@@ -158,7 +119,23 @@ export const Chat = () => {
     storage?.setItem(LAST_MODEL, value);
   };
 
-  const messagesWithoutSystem = messages;
+  const onSubmit = (e: React.FormEvent) => {
+    console.log("zzz subbmitting");
+    if (
+      currentApiKey.length === 0 &&
+      selectedChatGptModel != CHAT_GPT_MODELS[0]
+    ) {
+      setMissingApiKey(true);
+    } else {
+      setError(undefined);
+      setMissingApiKey(false);
+      storage?.setItem(CHAT_OPENAI_API_KEY, currentApiKey);
+      scrollToBottom();
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+    }
+  };
+
+  const messagesWithoutSystem = messages.slice(1);
   const reversedMessagesWithoutSystem = R.reverse(messagesWithoutSystem);
   return (
     <div className="flex flex-col bg-muted/50 relative w-full h-full">
@@ -216,17 +193,21 @@ export const Chat = () => {
         )}
       </div>
       <div className="flex flex-col flex-1 overflow-y-hidden">
+        {/* Col-reverse is used to enable automatic scrolling as content populates the div */}
         <div
           ref={messagesDivRef}
           className="flex flex-1 flex-col-reverse overflow-y-auto pt-4 pb-3"
         >
+          {/* This div takes up all the remaining space so the messages start at the top */}
           <div className={`flex flex-1 flex-col justify-center`}>
-            {messages.length === 0 && (
+            {messages.length <= 1 && (
               <EmptyState
                 onExampleClick={(example) => {
                   setSystemMessage(example.systemPrompt);
                   if (example.userPrompt) {
-                    setInput(example.userPrompt);
+                    handleInputChange({
+                      target: { value: example.userPrompt },
+                    } as React.ChangeEvent<HTMLTextAreaElement>);
                     if (submitButtonRef?.current) {
                       setTimeout(() => submitButtonRef?.current?.click(), 1);
                     }
@@ -263,7 +244,7 @@ export const Chat = () => {
             <div className="bg-background overflow-hidden focus-within:border-white px-1 py-1 shadow-lg mb-2 sm:rounded-xl sm:border md:py-1 ">
               <AutosizeTextarea
                 id="system-instructions"
-                disabled={messages.length > 0}
+                disabled={messages.length > 1}
                 placeholder="System prompt"
                 rows={1}
                 autoComplete="off"
@@ -294,7 +275,7 @@ export const Chat = () => {
                 }
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleSubmit(e);
+                  onSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
                 }
               }}
               autoComplete="off"
@@ -311,7 +292,7 @@ export const Chat = () => {
               ref={submitButtonRef}
               disabled={isLoading || !input}
               className="self-end"
-              onClick={handleSubmit}
+              onClick={onSubmit}
             >
               Run <Icons.return className="size-4 ml-2" />
             </Button>
