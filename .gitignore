@@ -64,3 +64,4 @@ packages/*/dist
 .husky/post*
 
 .next/
+.aider*
