@@ -24,7 +24,7 @@ import { EmptyState } from "./EmptyState";
 const IS_SERVER = typeof window === "undefined";
 const CHAT_OPENAI_API_KEY = "CHAT_OPENAI_API_KEY";
 const LAST_MODEL = "LAST_MODEL";
-const CHAT_GPT_MODELS = ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"];
+const CHAT_GPT_MODELS = ["code-alive-1"];
 
 const CONTAINER_CLASSES = "mx-auto max-w-2xl container";
 
@@ -80,7 +80,7 @@ export const Chat = () => {
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
-      api: "/api/chat",
+      api: "http://localhost:5154/api/chat",
       initialMessages: [
         {
           id: nanoid(),
@@ -241,7 +241,7 @@ export const Chat = () => {
             );
           })}
           <div className={`flex gap-2 flex-col w-full ${CONTAINER_CLASSES}`}>
-            <div className="bg-background overflow-hidden focus-within:border-white px-1 py-1 shadow-lg mb-2 sm:rounded-xl sm:border md:py-1 ">
+            <div className="bg-background overflow-hidden focus-within:border-white px-1 py-1 shadow-lg mb-2 sm:rounded-xl sm:border md:py-1 " hidden={true}>
               <AutosizeTextarea
                 id="system-instructions"
                 disabled={messages.length > 1}
@@ -279,7 +279,7 @@ export const Chat = () => {
                 }
               }}
               autoComplete="off"
-              placeholder="Message ChatGPT"
+              placeholder="Ask CodeAlive"
               value={input}
               rows={1}
               style={{ height: 42 }}
