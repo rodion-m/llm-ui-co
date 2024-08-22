@@ -85,7 +85,6 @@ export const Chat = () => {
     handleInputChange,
     handleSubmit,
     isLoading,
-    reload,
   } = useChat({
     api: "http://localhost:5154/api/chat",
     initialMessages: [
@@ -108,13 +107,8 @@ export const Chat = () => {
   });
 
   const handleReset = useCallback(() => {
-    reload();
-    setSystemMessage("");
-    setError(undefined);
-    if (messageTextAreaRef.current?.textArea) {
-      messageTextAreaRef.current.textArea.value = "";
-    }
-  }, [reload]);
+    window.location.reload();
+  }, []);
 
   const scrollToBottom = () => {
     if (messagesDivRef.current) {
