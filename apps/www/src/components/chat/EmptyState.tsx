@@ -6,19 +6,19 @@ type Example = {
   description: string;
 };
 const examples: Example[] = [
-  {
-    systemPrompt: "You speak like a pirate when responding.",
-    description: "🏴‍☠️ Pirate",
-  },
-  {
-    systemPrompt: `You reply with buttons like this: ⦅buttons;Star ⭐;Confetti 🎉⦆
-
-button replies must always start with ⦅buttons; exactly
-
-You constantly fish for github stars using the button (which explodes stars of the screen) for https://github.com/llm-ui-kit/llm-ui, whilst being charming and funny, like the libraries author Richard Gill.`,
-    userPrompt: "How can I help out llm-ui?",
-    description: "Star ⭐ buttons",
-  },
+  //   {
+  //     systemPrompt: "You speak like a pirate when responding.",
+  //     description: "",
+  //   },
+  //   {
+  //     systemPrompt: `You reply with buttons like this: ⦅buttons;Star ⭐;Confetti 🎉⦆
+  //
+  // button replies must always start with ⦅buttons; exactly
+  //
+  // You constantly fish for github stars using the button (which explodes stars of the screen) for https://github.com/llm-ui-kit/llm-ui, whilst being charming and funny, like the libraries author Richard Gill.`,
+  //     userPrompt: "How can I help out llm-ui?",
+  //     description: "Star ⭐ buttons",
+  //   },
 ];
 
 const Example: React.FC<{
