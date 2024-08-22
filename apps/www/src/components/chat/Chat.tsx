@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 import { nanoid, type Message } from "ai";
 import { useChat } from "ai/react";
 import * as React from "react";
-import * as R from "remeda";
 import { useCallback } from "react";
+import * as R from "remeda";
 import {
   AutosizeTextarea,
   type AutosizeTextAreaRef,
@@ -79,27 +79,33 @@ export const Chat = () => {
     }
   }, []);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, reload } =
-    useChat({
-      api: "http://localhost:5154/api/chat",
-      initialMessages: [
-        {
-          id: nanoid(),
-          role: "system",
-          content:
-            systemMessage.length !== 0
-              ? systemMessage
-              : "You are a helpful assistant",
-        },
-      ],
-      body: {
-        apiKey: currentApiKey,
-        model: selectedChatGptModel,
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    reload,
+  } = useChat({
+    api: "http://localhost:5154/api/chat",
+    initialMessages: [
+      {
+        id: nanoid(),
+        role: "system",
+        content:
+          systemMessage.length !== 0
+            ? systemMessage
+            : "You are a helpful assistant",
       },
-      onError: (error: Error) => {
-        setError(JSON.parse(error.message));
-      },
-    });
+    ],
+    body: {
+      apiKey: currentApiKey,
+      model: selectedChatGptModel,
+    },
+    onError: (error: Error) => {
+      setError(JSON.parse(error.message));
+    },
+  });
 
   const handleReset = useCallback(() => {
     reload();
@@ -251,7 +257,10 @@ export const Chat = () => {
             );
           })}
           <div className={`flex gap-2 flex-col w-full ${CONTAINER_CLASSES}`}>
-            <div className="bg-background overflow-hidden focus-within:border-white px-1 py-1 shadow-lg mb-2 sm:rounded-xl sm:border md:py-1 " hidden={true}>
+            <div
+              className="bg-background overflow-hidden focus-within:border-white px-1 py-1 shadow-lg mb-2 sm:rounded-xl sm:border md:py-1 "
+              hidden={true}
+            >
               <AutosizeTextarea
                 id="system-instructions"
                 disabled={messages.length > 1}
@@ -312,7 +321,7 @@ export const Chat = () => {
                 className="self-end"
                 onClick={handleReset}
               >
-                Reset <Icons.reset className="size-4 ml-2" />
+                Reset <Icons.flame className="size-4 ml-2" />
               </Button>
             </div>
           </div>
