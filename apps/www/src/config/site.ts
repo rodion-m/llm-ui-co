@@ -1,7 +1,7 @@
 import type { SiteConfig } from "@/types";
 
 export const siteConfig: SiteConfig = {
-  name: "llm-ui",
+  name: "CodeAlive",
   description: "LLM UI components for React",
   url: "https://llm-ui.com",
   ogImage: "https://llm-ui.com/og.png",
