@@ -15,6 +15,7 @@ import { nanoid, type Message } from "ai";
 import { useChat } from "ai/react";
 import * as React from "react";
 import * as R from "remeda";
+import { useCallback } from "react";
 import {
   AutosizeTextarea,
   type AutosizeTextAreaRef,
@@ -78,7 +79,7 @@ export const Chat = () => {
     }
   }, []);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+  const { messages, input, handleInputChange, handleSubmit, isLoading, reload } =
     useChat({
       api: "http://localhost:5154/api/chat",
       initialMessages: [
@@ -99,6 +100,15 @@ export const Chat = () => {
         setError(JSON.parse(error.message));
       },
     });
+
+  const handleReset = useCallback(() => {
+    reload();
+    setSystemMessage("");
+    setError(undefined);
+    if (messageTextAreaRef.current?.textArea) {
+      messageTextAreaRef.current.textArea.value = "";
+    }
+  }, [reload]);
 
   const scrollToBottom = () => {
     if (messagesDivRef.current) {
@@ -288,14 +298,23 @@ export const Chat = () => {
               onChange={handleInputChange}
               className="focus-visible:ring-0 pr-0 resize-none bg-transparent focus-within:outline-none sm:text-base border-none"
             />
-            <Button
-              ref={submitButtonRef}
-              disabled={isLoading || !input}
-              className="self-end"
-              onClick={onSubmit}
-            >
-              Run <Icons.return className="size-4 ml-2" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                ref={submitButtonRef}
+                disabled={isLoading || !input}
+                className="self-end"
+                onClick={onSubmit}
+              >
+                Run <Icons.return className="size-4 ml-2" />
+              </Button>
+              <Button
+                variant="outline"
+                className="self-end"
+                onClick={handleReset}
+              >
+                Reset <Icons.reset className="size-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
