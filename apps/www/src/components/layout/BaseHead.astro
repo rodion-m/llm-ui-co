@@ -19,12 +19,12 @@ const {
 
 const calcFullTitle = (title: string | undefined) => {
   if (!title) {
-    return "llm-ui";
+    return "CodeAlive";
   }
   if (title.startsWith("llm-ui")) {
     return title;
   }
-  return `${title} | llm-ui`;
+  return `${title} | CodeAlive`;
 };
 const fullTitle = calcFullTitle(title);
 ---
